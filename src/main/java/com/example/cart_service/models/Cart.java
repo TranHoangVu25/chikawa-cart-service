@@ -19,5 +19,4 @@ public class Cart {
     Integer user_id;
     List<CartItem> cart_items;
 
-
 }

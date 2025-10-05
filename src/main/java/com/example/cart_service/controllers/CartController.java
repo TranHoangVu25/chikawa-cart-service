@@ -9,6 +9,8 @@ import lombok.experimental.FieldDefaults;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE,makeFinal = true)
 @RestController
@@ -25,5 +27,10 @@ public class CartController {
     @GetMapping("/{id}")
     public Cart getCart(@PathVariable String id){
         return cartService.findCartById(id);
+    }
+
+    @GetMapping("")
+    public List<Cart> getAllCart(){
+        return cartService.findAllCart();
     }
 }

@@ -32,4 +32,9 @@ public class CartServiceImpl implements CartService{
         return cartRepository.findById(id)
                 .orElseThrow(()->new RuntimeException("id not found"));
     }
+
+    @Override
+    public List<Cart> findAllCart() {
+        return cartRepository.findAll();
+    }
 }
