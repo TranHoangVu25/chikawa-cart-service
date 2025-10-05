@@ -1,12 +1,12 @@
 package com.example.cart_service.controllers;
 
+import com.example.cart_service.dto.request.CartItemRequest;
 import com.example.cart_service.models.Cart;
+import com.example.cart_service.models.CartItem;
 import com.example.cart_service.services.CartService;
-import com.example.cart_service.services.CartServiceImpl;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -32,5 +32,29 @@ public class CartController {
     @GetMapping("")
     public List<Cart> getAllCart(){
         return cartService.findAllCart();
+    }
+
+    @PostMapping("/cart-items/{userId}")
+    public Cart createCartItem(
+            @RequestBody CartItem cartItem,
+            @PathVariable int userId
+            ){
+        return cartService.createCartItem(userId,cartItem);
+    }
+
+    @DeleteMapping("/cart-items/{userId}/{productId}")
+    public Cart deleteCartItem(
+            @PathVariable Integer userId,
+            @PathVariable String productId
+    ){
+        return cartService.deleteCartItem(userId,productId);
+    }
+
+    @PutMapping("cart-items/{userId}")
+    public Cart updateCartItem(
+            @PathVariable Integer userId,
+            @RequestBody CartItemRequest request
+            ){
+        return cartService.updateQuantity(userId,request);
     }
 }
