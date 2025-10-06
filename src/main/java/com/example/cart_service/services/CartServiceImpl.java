@@ -31,7 +31,7 @@ public class CartServiceImpl implements CartService{
     @Override
     public Cart findCartById(String id) {
         return cartRepository.findById(id)
-                .orElseThrow(()->new RuntimeException("id not found"));
+                .orElseThrow(()->new RuntimeException("cart id not found"));
     }
 
     @Override
@@ -91,5 +91,11 @@ public class CartServiceImpl implements CartService{
         }
         if (!updated) throw new RuntimeException("Product not found");
         return cartRepository.save(cart);
+    }
+
+    @Override
+    public Cart findByUserId(Integer userId) {
+        return cartRepository.findByUserId(userId)
+                .orElseThrow(()-> new RuntimeException("User id not found"));
     }
 }

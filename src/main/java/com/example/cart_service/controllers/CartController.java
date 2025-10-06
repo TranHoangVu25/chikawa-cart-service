@@ -7,6 +7,9 @@ import com.example.cart_service.services.CartService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -18,43 +21,68 @@ import java.util.List;
 public class CartController {
     CartService cartService;
 
-    @PostMapping("")
-    public String createCart(@RequestBody int userId){
-        cartService.createCart(userId);
-        return "Ok";
-    }
-
-    @GetMapping("/{id}")
-    public Cart getCart(@PathVariable String id){
-        return cartService.findCartById(id);
-    }
-
+    //tạo cart theo id user (nếu chưa có)
+    //sửa lại thành get nếu chưa có
     @GetMapping("")
+    public ResponseEntity createCart(@AuthenticationPrincipal Jwt jwt){
+        Integer userId = Integer.valueOf(jwt.getClaimAsString("sub"));
+        Cart cart = cartService.findByUserId(userId);
+        if (cart==null){
+            cartService.createCart(userId);
+            return ResponseEntity.ok("Cart created for user " + userId);
+        }
+        return ResponseEntity.ok("Cart already exists for user " + userId);
+    }
+
+    //tìm kiếm cart theo user id
+    @GetMapping("/get-user-cart")
+    public Cart getCart(@AuthenticationPrincipal Jwt jwt){
+        Integer userId = Integer.valueOf(jwt.getClaimAsString("sub"));
+        return cartService.findByUserId(userId);
+    }
+
+    //hiển thị tất cả các giỏ hàng của user
+    @GetMapping("/get-carts")
     public List<Cart> getAllCart(){
         return cartService.findAllCart();
     }
 
-    @PostMapping("/cart-items/{userId}")
+    //thêm cart item vào giỏ hàng
+    @PostMapping("/cart-items")
     public Cart createCartItem(
             @RequestBody CartItem cartItem,
-            @PathVariable int userId
+            @AuthenticationPrincipal Jwt jwt
             ){
+        Integer userId = Integer.valueOf(jwt.getClaimAsString("sub"));
         return cartService.createCartItem(userId,cartItem);
     }
 
-    @DeleteMapping("/cart-items/{userId}/{productId}")
+    //xóa cart item khỏi cart
+    @DeleteMapping("/cart-items/{productId}")
     public Cart deleteCartItem(
-            @PathVariable Integer userId,
+            @AuthenticationPrincipal Jwt jwt,
             @PathVariable String productId
     ){
+        Integer userId = Integer.valueOf(jwt.getClaimAsString("sub"));
         return cartService.deleteCartItem(userId,productId);
     }
 
-    @PutMapping("cart-items/{userId}")
+    //sửa số lượng sản phẩm
+    @PutMapping("/cart-items")
     public Cart updateCartItem(
-            @PathVariable Integer userId,
+            @AuthenticationPrincipal Jwt jwt,
             @RequestBody CartItemRequest request
             ){
+        Integer userId = Integer.valueOf(jwt.getClaimAsString("sub"));
         return cartService.updateQuantity(userId,request);
     }
+
+    //checkout: nếu thanh toán thành công thì xóa toàn bộ cart hiện tại
+    // nếu không thành công thì cart vẫn để nguyên
+    @GetMapping("checkout")
+    public Cart checkout(@AuthenticationPrincipal Jwt jwt){
+        Integer userId = Integer.valueOf(jwt.getClaimAsString("sub"));
+        return cartService.findByUserId(userId);
+    }
+
 }

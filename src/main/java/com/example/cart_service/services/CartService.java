@@ -20,4 +20,6 @@ public interface CartService {
     Cart deleteCartItem(Integer userId, String productionId);
 
     Cart updateQuantity(Integer userId, CartItemRequest request);
+
+    Cart findByUserId(Integer userId);
 }
