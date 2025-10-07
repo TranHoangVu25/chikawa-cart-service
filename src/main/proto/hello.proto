@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+option java_package = "com.example.helloworld.stubs";
+option java_multiple_files = true;
+
+message HelloWorldRequest {
+    optional string name = 1;
+}
+
+message HelloWorldResponse {
+    string greeting = 1;
+}
+
+service HelloWorldService {
+    rpc SayHello(stream HelloWorldRequest) returns (stream HelloWorldResponse);
+}

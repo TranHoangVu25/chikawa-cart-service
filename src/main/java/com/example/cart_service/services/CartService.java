@@ -1,6 +1,7 @@
 package com.example.cart_service.services;
 
 import com.example.cart_service.dto.request.CartItemRequest;
+import com.example.cart_service.dto.response.ApiResponse;
 import com.example.cart_service.models.Cart;
 import com.example.cart_service.models.CartItem;
 import org.springframework.stereotype.Service;
@@ -24,4 +25,6 @@ public interface CartService {
     Cart findByUserId(Integer userId);
 
     Cart findByUserIdToCreate(Integer userId);
+
+    ApiResponse<String> checkout(Integer userId,String jwtToken);
 }
