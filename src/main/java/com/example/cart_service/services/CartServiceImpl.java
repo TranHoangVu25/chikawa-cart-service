@@ -98,4 +98,11 @@ public class CartServiceImpl implements CartService{
         return cartRepository.findByUserId(userId)
                 .orElseThrow(()-> new RuntimeException("User id not found"));
     }
+
+    @Override
+    public Cart findByUserIdToCreate(Integer userId) {
+        return cartRepository.findByUserId(userId)
+                .orElse(null);
+    }
+
 }

@@ -26,7 +26,7 @@ public class CartController {
     @GetMapping("")
     public ResponseEntity createCart(@AuthenticationPrincipal Jwt jwt){
         Integer userId = Integer.valueOf(jwt.getClaimAsString("sub"));
-        Cart cart = cartService.findByUserId(userId);
+        Cart cart = cartService.findByUserIdToCreate(userId);
         if (cart==null){
             cartService.createCart(userId);
             return ResponseEntity.ok("Cart created for user " + userId);

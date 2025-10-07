@@ -22,4 +22,6 @@ public interface CartService {
     Cart updateQuantity(Integer userId, CartItemRequest request);
 
     Cart findByUserId(Integer userId);
+
+    Cart findByUserIdToCreate(Integer userId);
 }
