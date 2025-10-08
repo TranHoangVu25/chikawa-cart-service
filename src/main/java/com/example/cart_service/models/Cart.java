@@ -19,5 +19,4 @@ public class Cart {
     String id;
     Integer user_id;
     List<CartItem> cart_items;
-
 }

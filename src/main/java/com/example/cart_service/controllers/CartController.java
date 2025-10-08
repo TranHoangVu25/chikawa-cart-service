@@ -5,6 +5,7 @@ import com.example.cart_service.dto.response.ApiResponse;
 import com.example.cart_service.models.Cart;
 import com.example.cart_service.models.CartItem;
 import com.example.cart_service.services.CartService;
+import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -52,7 +53,7 @@ public class CartController {
     //thêm cart item vào giỏ hàng
     @PostMapping("/cart-items")
     public Cart createCartItem(
-            @RequestBody CartItem cartItem,
+            @RequestBody @Valid CartItem cartItem,
             @AuthenticationPrincipal Jwt jwt
     ) {
         Integer userId = Integer.valueOf(jwt.getClaimAsString("sub"));
