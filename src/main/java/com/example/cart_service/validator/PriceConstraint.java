@@ -13,7 +13,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Retention(RUNTIME)
 @Constraint(validatedBy = {PriceValidator.class})
 public @interface PriceConstraint {
-    String message() default "Price must be higher than 0";
+    String message() default "INVALID_PRICE";
 
     double min();
     Class<?>[] groups() default {};

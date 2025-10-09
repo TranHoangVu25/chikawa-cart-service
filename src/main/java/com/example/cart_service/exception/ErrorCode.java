@@ -17,6 +17,8 @@ public enum ErrorCode {
     INVALID_DOB(1008,"Your age is at least {min}",HttpStatus.BAD_REQUEST),
     INVALID_CART_ITEM_NAME(1009,"Cart item name is at least {min}",HttpStatus.BAD_REQUEST),
     INVALID_QUANTITY(1010,"The minimum quantity is 1",HttpStatus.BAD_REQUEST),
+    INVALID_PRICE(1011,"The price must be > 0",HttpStatus.BAD_REQUEST),
+
     ;
     private int code;
     private String message;
