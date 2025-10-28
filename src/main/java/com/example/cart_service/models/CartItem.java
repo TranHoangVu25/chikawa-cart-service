@@ -12,12 +12,12 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @Builder
 public class CartItem {
-    String product_id;
+    String id;
     @Size(message = "INVALID_CART_ITEM_NAME",min = 3)
-    String product_name;
+    String name;
     @PriceConstraint(min = 0)
     double price;
     @Min(message = "INVALID_QUANTITY",value = 1)
     int quantity;
-    String img_url;
+    String images;
 }

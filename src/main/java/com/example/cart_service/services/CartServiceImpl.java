@@ -1,6 +1,5 @@
 package com.example.cart_service.services;
 
-import com.example.cart_service.dto.CartItemDTO;
 import com.example.cart_service.dto.request.CartItemRequest;
 import com.example.cart_service.dto.request.OrderRequestDTO;
 import com.example.cart_service.dto.response.ApiResponse;
@@ -10,6 +9,7 @@ import com.example.cart_service.repositories.CartRepository;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -20,6 +20,7 @@ import org.springframework.web.client.RestTemplate;
 import java.util.ArrayList;
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
@@ -29,13 +30,12 @@ public class CartServiceImpl implements CartService {
     RestTemplate restTemplate;
     String ORDER_SERVICE_URL = "http://localhost:8081/api/v1/order";
 
-
     @Override
     public void createCart(Integer userId) {
         List<CartItem> cartItemList = new ArrayList<>();
         Cart cart = new Cart()
                 .builder()
-                .user_id(userId)
+                .userId(userId)
                 .cart_items(cartItemList)
                 .build();
         cartRepository.save(cart);
@@ -52,18 +52,33 @@ public class CartServiceImpl implements CartService {
         return cartRepository.findAll();
     }
 
+    //thêm cart item vào giỏ hàng
     @Override
     public Cart createCartItem(Integer userId, CartItem newItem) {
+        boolean a = cartRepository.existsByUserId(userId);
+        log.info("result ="+a);
+        //check giỏ hàng đã tồn tại chưa, nếu chưa thì tạo mới
+        if (!cartRepository.existsByUserId(userId)){
+            List<CartItem> cartItemList = new ArrayList<>();
+            Cart cart = new Cart()
+                    .builder()
+                    .userId(userId)
+                    .cart_items(cartItemList)
+                    .build();
+            cartRepository.save(cart);
+        }
+
         Cart cart = cartRepository.findByUserId(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new RuntimeException("User have id: "+userId+" not found cart."));
 
         List<CartItem> existingCartItems = cart.getCart_items();
 
         boolean found = false;
 
         for (CartItem item : existingCartItems) {
-            if (newItem.getProduct_id().equals(item.getProduct_id())) {
+            if (newItem.getId().equals(item.getId())) {
                 item.setQuantity(item.getQuantity() + newItem.getQuantity());
+                item.setPrice(item.getPrice()* item.getQuantity());
                 found = true;
                 break;
             }
@@ -76,11 +91,9 @@ public class CartServiceImpl implements CartService {
     public Cart deleteCartItem(Integer userId, String productId) {
         Cart cart = cartRepository.findByUserId(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-
         boolean removed = cart.getCart_items().removeIf(
-                item -> productId.equals(item.getProduct_id())
+                item -> productId.equals(item.getId())
         );
-
         if (!removed) {
             throw new RuntimeException("Product not found in cart");
         }
@@ -96,8 +109,9 @@ public class CartServiceImpl implements CartService {
         boolean updated = false;
 
         for (CartItem item : cartItemList) {
-            if (item.getProduct_id().equals(request.getProduct_id())) {
+            if (item.getId().equals(request.getId())) {
                 item.setQuantity(request.getQuantity());
+                item.setPrice(request.getQuantity()*item.getPrice());
                 updated = true;
                 break;
             }

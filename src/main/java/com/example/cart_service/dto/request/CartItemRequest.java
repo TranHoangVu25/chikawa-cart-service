@@ -1,5 +1,6 @@
 package com.example.cart_service.dto.request;
 
+import jakarta.validation.constraints.Min;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -11,7 +12,7 @@ import lombok.experimental.FieldDefaults;
 @NoArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class CartItemRequest {
-    String product_id;
+    String id;
+    @Min(value = 1,message = "INVALID_QUANTITY")
     int quantity;
-
 }

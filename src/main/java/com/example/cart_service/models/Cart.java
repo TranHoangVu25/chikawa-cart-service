@@ -17,6 +17,6 @@ import java.util.List;
 public class Cart {
     @Id
     String id;
-    Integer user_id;
+    Integer userId;
     List<CartItem> cart_items;
 }

@@ -51,12 +51,23 @@ public class CartController {
     }
 
     //thêm cart item vào giỏ hàng
-    @PostMapping("/cart-items")
-    public Cart createCartItem(
-            @RequestBody @Valid CartItem cartItem,
-            @AuthenticationPrincipal Jwt jwt
-    ) {
-        Integer userId = Integer.valueOf(jwt.getClaimAsString("sub"));
+//    @PostMapping("/cart-items")
+//    public Cart createCartItem(
+//            @RequestBody @Valid CartItem cartItem,
+//            @AuthenticationPrincipal Jwt jwt
+//    ) {
+//        Integer userId = Integer.valueOf(jwt.getClaimAsString("sub"));
+//        return cartService.createCartItem(userId, cartItem);
+//    }
+
+    @PostMapping
+    public Cart createCartItem(@RequestBody @Valid CartItem cartItem,
+            @AuthenticationPrincipal Jwt jwt ) {
+        Integer userId = Integer.parseInt(jwt.getClaimAsString("sub"));
+
+        System.out.println("✅ Thêm sản phẩm từ product service:");
+        System.out.println("Items: " + cartItem.getName());
+
         return cartService.createCartItem(userId, cartItem);
     }
 
@@ -74,7 +85,7 @@ public class CartController {
     @PutMapping("/cart-items")
     public Cart updateCartItem(
             @AuthenticationPrincipal Jwt jwt,
-            @RequestBody CartItemRequest request
+            @RequestBody @Valid CartItemRequest request
     ) {
         Integer userId = Integer.valueOf(jwt.getClaimAsString("sub"));
         return cartService.updateQuantity(userId, request);
@@ -87,6 +98,4 @@ public class CartController {
         Integer userId = Integer.valueOf(jwt.getClaimAsString("sub"));
         return cartService.checkout(userId,jwt.getTokenValue());
     }
-
-
 }

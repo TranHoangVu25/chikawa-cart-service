@@ -10,6 +10,9 @@ import java.util.Optional;
 public interface CartRepository extends MongoRepository<Cart,String> {
     Optional<Cart> findById(String id);
 
-    @Query("{ 'user_id': ?0 }")
+    //trả về cart theo user_id
+    @Query("{ 'userId': ?0 }")
     Optional<Cart> findByUserId(Integer userId);
+
+    boolean existsByUserId(Integer userId);
 }
