@@ -6,7 +6,6 @@ spring:
 jwt:
   signerKey: "3m47O+gM3Sc0lc9I5pMhfGFZMoqvbFtLoNs6Lmq9nOg="
 
-
 grpc:
   server:
     port: 9090

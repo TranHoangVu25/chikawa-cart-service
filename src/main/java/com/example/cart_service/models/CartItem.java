@@ -19,5 +19,5 @@ public class CartItem {
     double price;
     @Min(message = "INVALID_QUANTITY",value = 1)
     int quantity;
-    String images;
+    String image;
 }
