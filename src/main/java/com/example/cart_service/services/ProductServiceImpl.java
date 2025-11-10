@@ -59,7 +59,11 @@ public class ProductServiceImpl implements ProductService {
                         .name(p.getName())
                         .price(p.getPrice())
                         .status(p.getStatus())
-                        .images(p.getImages())
+                        .images(
+                                (p.getImages() != null && !p.getImages().isEmpty())
+                                        ? List.of(p.getImages().get(0))
+                                        : List.of()
+                        )
                         .build())
                 .toList();
 

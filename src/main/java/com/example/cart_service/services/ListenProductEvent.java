@@ -9,6 +9,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -23,6 +26,8 @@ public class ListenProductEvent {
             if(event.getImages()!=null){
                  img = event.getImages().get(0);
             }
+            List<String> imgs = new ArrayList<>();
+            imgs.add(img);
             System.out.println("Received: " + event.getName());
 
             Product prod = Product.builder()
@@ -30,7 +35,7 @@ public class ListenProductEvent {
                     .name(event.getName())
                     .price(event.getPrice())
                     .status(event.getStatus())
-                    .images(img)
+                    .images(imgs)
                     .build();
 
             productRepository.save(prod);
@@ -46,6 +51,8 @@ public class ListenProductEvent {
             if(event.getImages()!=null){
                 img = event.getImages().get(0);
             }
+            List<String> imgs = new ArrayList<>();
+            imgs.add(img);
                 System.out.println("Received: " + event.getName());
                 Product d = productRepository.findById(event.getId())
                         .orElseThrow(() -> new RuntimeException("Product not found"));
@@ -53,7 +60,7 @@ public class ListenProductEvent {
                 d.setName(event.getName());
                 d.setStatus(event.getStatus());
                 d.setPrice(event.getPrice());
-                d.setImages(img);
+                d.setImages(imgs);
 
                 productRepository.save(d);
                 System.out.println("Indexed product in cart: " + event.getId());
@@ -76,7 +83,7 @@ public class ListenProductEvent {
 
     @RabbitListener(queues = "product_cart_queue")
     public void receiveData(ProductDTO e){
-        log.info("📥 Received raw event: {}", e); // log toàn bộ object
+        log.info("Received raw event: {}", e); // log toàn bộ object
         switch (e.getAction()){
             case CREATE -> listenCreateProduct(e);
             case UPDATE -> listenUpdateProduct(e);
