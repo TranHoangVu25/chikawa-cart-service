@@ -1,6 +1,6 @@
 package com.example.cart_service.controllers;
 
-import com.example.cart_service.services.ProductServiceImpl;
+import com.example.cart_service.services.impl.ProductServiceImpl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
