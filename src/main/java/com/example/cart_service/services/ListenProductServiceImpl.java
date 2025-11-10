@@ -1,10 +1,9 @@
-package com.example.cart_service.services.impl;
+package com.example.cart_service.services;
 
 import com.example.cart_service.dto.ProductDTO;
 import com.example.cart_service.models.Product;
 import com.example.cart_service.repositories.CartRepository;
 import com.example.cart_service.repositories.ProductRepository;
-import com.example.cart_service.services.ListenProductService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
@@ -16,7 +15,7 @@ import java.util.List;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class ListenProductServiceImpl implements ListenProductService {
+public class ListenProductServiceImpl{
     private final CartRepository repository;
     private final ProductRepository productRepository;
 

@@ -18,6 +18,9 @@ public enum ErrorCode {
     INVALID_CART_ITEM_NAME(1009,"Cart item name is at least {min}",HttpStatus.BAD_REQUEST),
     INVALID_QUANTITY(1010,"The minimum quantity is 1",HttpStatus.BAD_REQUEST),
     INVALID_PRICE(1011,"The price must be > 0",HttpStatus.BAD_REQUEST),
+    PRODUCT_NOT_AVAILABLE(1012,"Product not available",HttpStatus.BAD_REQUEST),
+    ADD_TO_CART_SUCCESS(1013,"Add to cart successfully",HttpStatus.OK),
+
 
     ;
     private int code;

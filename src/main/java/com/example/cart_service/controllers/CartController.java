@@ -3,7 +3,6 @@ package com.example.cart_service.controllers;
 import com.example.cart_service.dto.request.CartItemRequest;
 import com.example.cart_service.dto.response.ApiResponse;
 import com.example.cart_service.models.Cart;
-import com.example.cart_service.models.CartItem;
 import com.example.cart_service.services.CartService;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
@@ -15,7 +14,6 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
 
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
@@ -51,7 +49,7 @@ public class CartController {
     }
 
     @PostMapping
-    public Cart createCartItem(@RequestBody @Valid CartItem cartItem,
+    public Cart createCartItem(@RequestBody @Valid com.example.cart_service.models.CartItem cartItem,
             @AuthenticationPrincipal Jwt jwt ) {
         Integer userId = Integer.parseInt(jwt.getClaimAsString("sub"));
 
@@ -87,5 +85,19 @@ public class CartController {
     public ApiResponse<String> checkout(@AuthenticationPrincipal Jwt jwt) {
         Integer userId = Integer.valueOf(jwt.getClaimAsString("sub"));
         return cartService.checkout(userId,jwt.getTokenValue());
+    }
+
+    @PostMapping("/add-to-cart")
+    public ResponseEntity<ApiResponse<Cart>> addToCart(
+            @RequestBody @Valid CartItemRequest request,
+            @AuthenticationPrincipal Jwt jwt
+    ){
+        try {
+            Integer userId = Integer.valueOf(jwt.getClaimAsString("sub"));
+            return cartService.addToCart(userId,request);
+        } catch (NumberFormatException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
     }
 }

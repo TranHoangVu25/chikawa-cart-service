@@ -2,6 +2,7 @@ package com.example.cart_service.repositories;
 
 import com.example.cart_service.dto.response.ApiResponse;
 import com.example.cart_service.models.Cart;
+import com.example.cart_service.models.CartItem;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
 
@@ -15,4 +16,6 @@ public interface CartRepository extends MongoRepository<Cart,String> {
     Optional<Cart> findByUserId(Integer userId);
 
     boolean existsByUserId(Integer userId);
+
+    Optional<CartItem> findByCartItems_Id(String cartItemId);
 }

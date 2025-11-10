@@ -1,8 +1,9 @@
-package com.example.cart_service.services;
+package com.example.cart_service.services.impl;
 
 import com.example.cart_service.dto.response.ApiResponse;
 import com.example.cart_service.models.Product;
 import com.example.cart_service.repositories.ProductRepository;
+import com.example.cart_service.services.ProductService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
