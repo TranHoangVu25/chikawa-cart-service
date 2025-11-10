@@ -4,7 +4,6 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
-import org.springframework.data.mongodb.core.mapping.Field;
 
 import java.util.List;
 
@@ -18,5 +17,5 @@ public class Cart {
     @Id
     String id;
     Integer userId;
-    List<CartItem> cart_items;
+    List<CartItem> cartItems;
 }

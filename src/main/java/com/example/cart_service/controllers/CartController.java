@@ -50,16 +50,6 @@ public class CartController {
         return cartService.findAllCart();
     }
 
-    //thêm cart item vào giỏ hàng
-//    @PostMapping("/cart-items")
-//    public Cart createCartItem(
-//            @RequestBody @Valid CartItem cartItem,
-//            @AuthenticationPrincipal Jwt jwt
-//    ) {
-//        Integer userId = Integer.valueOf(jwt.getClaimAsString("sub"));
-//        return cartService.createCartItem(userId, cartItem);
-//    }
-
     @PostMapping
     public Cart createCartItem(@RequestBody @Valid CartItem cartItem,
             @AuthenticationPrincipal Jwt jwt ) {

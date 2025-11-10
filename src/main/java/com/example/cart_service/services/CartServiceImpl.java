@@ -36,7 +36,7 @@ public class CartServiceImpl implements CartService {
         Cart cart = new Cart()
                 .builder()
                 .userId(userId)
-                .cart_items(cartItemList)
+                .cartItems(cartItemList)
                 .build();
         cartRepository.save(cart);
     }
@@ -63,7 +63,7 @@ public class CartServiceImpl implements CartService {
             Cart cart = new Cart()
                     .builder()
                     .userId(userId)
-                    .cart_items(cartItemList)
+                    .cartItems(cartItemList)
                     .build();
             cartRepository.save(cart);
         }
@@ -71,7 +71,7 @@ public class CartServiceImpl implements CartService {
         Cart cart = cartRepository.findByUserId(userId)
                 .orElseThrow(() -> new RuntimeException("User have id: "+userId+" not found cart."));
 
-        List<CartItem> existingCartItems = cart.getCart_items();
+        List<CartItem> existingCartItems = cart.getCartItems();
 
         boolean found = false;
 
@@ -91,7 +91,7 @@ public class CartServiceImpl implements CartService {
     public Cart deleteCartItem(Integer userId, String productId) {
         Cart cart = cartRepository.findByUserId(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        boolean removed = cart.getCart_items().removeIf(
+        boolean removed = cart.getCartItems().removeIf(
                 item -> productId.equals(item.getId())
         );
         if (!removed) {
@@ -104,7 +104,7 @@ public class CartServiceImpl implements CartService {
     public Cart updateQuantity(Integer userId, CartItemRequest request) {
         Cart cart = cartRepository.findByUserId(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        List<CartItem> cartItemList = cart.getCart_items();
+        List<CartItem> cartItemList = cart.getCartItems();
 
         boolean updated = false;
 
@@ -137,7 +137,7 @@ public class CartServiceImpl implements CartService {
         Cart cart = cartRepository.findByUserId(userId)
                 .orElseThrow(() -> new RuntimeException("id not found"));
 
-        List<CartItem> cartItems = cart.getCart_items();
+        List<CartItem> cartItems = cart.getCartItems();
 
         if (cartItems == null || cartItems.isEmpty()) {
             return ApiResponse.<String>builder()
