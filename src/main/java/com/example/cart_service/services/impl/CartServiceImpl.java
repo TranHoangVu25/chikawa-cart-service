@@ -175,10 +175,10 @@ public class CartServiceImpl implements CartService {
 
         if (productOpt.isEmpty()) {
             // Product không tồn tại hoặc không available, trả về ApiResponse lỗi
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(
                             ApiResponse.<Cart>builder()
-                                    .code(400) // hoặc code phù hợp
+                                    .code(404) // hoặc code phù hợp
                                     .message(ErrorCode.PRODUCT_NOT_AVAILABLE.getMessage())
                                     .build());
         }
