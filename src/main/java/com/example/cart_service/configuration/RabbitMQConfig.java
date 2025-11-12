@@ -10,9 +10,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class RabbitMQConfig {
     public static final String EXCHANGE = "product_exchange";
-//    public static final String ROUTING_KEY = "product.search";
     public static final String QUEUE = "product_cart_queue";
-
     @Bean
     public FanoutExchange fanoutExchange() {
         return new FanoutExchange(EXCHANGE);
@@ -27,6 +25,7 @@ public class RabbitMQConfig {
     public Binding binding(Queue queue, FanoutExchange fanoutExchange) {
         return BindingBuilder.bind(queue).to(fanoutExchange);
     }
+
     @Bean
     public Jackson2JsonMessageConverter jackson2JsonMessageConverter() {
         return new Jackson2JsonMessageConverter();

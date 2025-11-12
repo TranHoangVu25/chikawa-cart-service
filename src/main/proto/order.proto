@@ -1,0 +1,33 @@
+syntax = "proto3";
+
+// Bổ sung định nghĩa package Protobuf
+package order;
+
+option java_multiple_files = true;
+option java_package = "com.example.grpc";
+
+// 🔴 Loại bỏ dòng này: option java_outer_classname = "OrderProto";
+
+// Định nghĩa Service (Interface)
+service OrderService {
+  rpc CreateOrder (CartRequest) returns (OrderResponse);
+}
+
+// Định nghĩa Message (Data Structures)
+message CartRequest {
+  int32 userId = 1;
+  repeated CartItem items = 2;
+}
+
+message CartItem {
+  string id = 1;
+  string name = 2;
+  double price = 3;
+  int32 quantity = 4;
+  string image = 5;
+}
+
+message OrderResponse {
+  string orderId = 1;
+  string message = 2;
+}

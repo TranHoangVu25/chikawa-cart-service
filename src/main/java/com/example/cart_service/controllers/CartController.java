@@ -2,6 +2,8 @@ package com.example.cart_service.controllers;
 
 import com.example.cart_service.dto.request.CartItemRequest;
 import com.example.cart_service.dto.response.ApiResponse;
+//import com.example.cart_service.grpc.GrpcOrderClient;
+import com.example.cart_service.grpc.GrpcOrderClient;
 import com.example.cart_service.models.Cart;
 import com.example.cart_service.services.CartService;
 import jakarta.validation.Valid;
@@ -21,6 +23,8 @@ import java.util.List;
 @RequestMapping("/api/v1/cart")
 public class CartController {
     CartService cartService;
+    GrpcOrderClient grpcOrderClient;
+
 
     //tạo cart theo id user (nếu chưa có)
     //sửa lại thành get nếu chưa có
@@ -98,6 +102,28 @@ public class CartController {
         } catch (NumberFormatException e) {
             e.printStackTrace();
             throw new RuntimeException(e);
+        }
+    }
+
+    @PostMapping("/checkout")
+    public String checkout(@RequestBody Cart cart) {
+
+        if (cart == null || cart.getCartItems().isEmpty()) {
+            return "Error: Cart is empty or invalid.";
+        }
+
+        try {
+            // Gọi gRPC Client, chỉ truyền dữ liệu cần thiết cho OrderService
+            String orderResponse = grpcOrderClient.sendOrder(
+                    cart.getUserId(),
+                    cart.getCartItems() // Dữ liệu giỏ hàng
+            );
+
+            return "Checkout successful. Order Service Response: " + orderResponse;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "Error during gRPC communication: " + e.getMessage();
         }
     }
 }
