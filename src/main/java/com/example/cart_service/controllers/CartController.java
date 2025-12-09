@@ -77,7 +77,7 @@ public class CartController {
 
     //sửa số lượng sản phẩm
     @PutMapping("/cart-items")
-    public Cart updateCartItem(
+    public ResponseEntity<ApiResponse<Cart>> updateCartItem(
             @AuthenticationPrincipal Jwt jwt,
             @RequestBody @Valid CartItemRequest request
     ) {

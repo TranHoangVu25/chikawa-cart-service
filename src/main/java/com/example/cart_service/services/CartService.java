@@ -20,7 +20,7 @@ public interface CartService {
 
     ResponseEntity<ApiResponse<String>> deleteCartItem(Integer userId, String productionId, String variantId);
 
-    Cart updateQuantity(Integer userId, CartItemRequest request);
+    ResponseEntity<ApiResponse<Cart>> updateQuantity(Integer userId, CartItemRequest request);
 
     Cart findByUserId(Integer userId);
 

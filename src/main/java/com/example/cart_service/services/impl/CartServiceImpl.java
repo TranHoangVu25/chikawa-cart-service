@@ -21,6 +21,7 @@ import org.springframework.web.client.RestTemplate;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Slf4j
@@ -91,18 +92,6 @@ public class CartServiceImpl implements CartService {
         return cartRepository.save(cart);
     }
 
-    //    @Override
-//    public Cart deleteCartItem(Integer userId, String productId) {
-//        Cart cart = cartRepository.findByUserId(userId)
-//                .orElseThrow(() -> new RuntimeException("User not found"));
-//        boolean removed = cart.getCartItems().removeIf(
-//                item -> productId.equals(item.getId())
-//        );
-//        if (!removed) {
-//            throw new RuntimeException("Product not found in cart");
-//        }
-//        return cartRepository.save(cart);
-//    }
     @Override
     public ResponseEntity<ApiResponse<String>> deleteCartItem(Integer userId, String productId, String variantId) {
         Cart cart = cartRepository.findByUserId(userId)
@@ -129,25 +118,59 @@ public class CartServiceImpl implements CartService {
                 );
     }
     @Override
-    public Cart updateQuantity(Integer userId, CartItemRequest request) {
+    public ResponseEntity<ApiResponse<Cart>> updateQuantity(Integer userId, CartItemRequest request) {
+        if (!cartRepository.existsByUserId(userId)) {
+            ResponseEntity.badRequest()
+                    .body(
+                            ApiResponse.<Cart>builder()
+                                    .code(ErrorCode.USER_NOT_EXISTED.getCode())
+                                    .message(ErrorCode.USER_NOT_EXISTED.getMessage())
+                                    .build());
+        }
         Cart cart = cartRepository.findByUserId(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        List<com.example.cart_service.models.CartItem> cartItemList = cart.getCartItems();
+        List<CartItem> cartItemList = cart.getCartItems();
 
         boolean updated = false;
+        String reqVariantId = request.getVariantId();
+        if(reqVariantId!=null && reqVariantId.isEmpty()) reqVariantId = null;
+        for (CartItem item : cartItemList) {
+            String itemVariantId = item.getVariantId();
 
-        for (com.example.cart_service.models.CartItem item : cartItemList) {
-            if (item.getId().equals(request.getId())) {
-                item.setQuantity(request.getQuantity());
-                item.setPrice(request.getQuantity()*item.getPrice());
-                updated = true;
-                break;
+            if(itemVariantId!=null && itemVariantId.isEmpty()) itemVariantId = null;
+
+            boolean sameProd = item.getId().equals(request.getId());
+            boolean sameVariantId = Objects.equals(itemVariantId,reqVariantId);
+
+            log.info("sameProd: "+sameProd+" sameVariantId: "+sameVariantId);
+            if (sameProd && sameVariantId) {
+                {
+                    item.setQuantity(request.getQuantity());
+                    updated = true;
+                    break;
+                }
             }
         }
-        if (!updated) throw new RuntimeException("Product not found");
-        return cartRepository.save(cart);
-    }
 
+        // nếu k có sản phẩm nào đc update
+        if (!updated) {
+            log.error("Product not found");
+            return ResponseEntity.badRequest()
+                    .body(
+                            ApiResponse.<Cart>builder()
+                                    .code(ErrorCode.PRODUCT_NOT_FOUND.getCode())
+                                    .message(ErrorCode.PRODUCT_NOT_FOUND.getMessage())
+                                    .build());
+        }
+        Cart item_update = cartRepository.save(cart);
+
+        return ResponseEntity.ok()
+                .body(
+                        ApiResponse.<Cart>builder()
+                                .message("Update quantity successfully")
+                                .result(item_update)
+                                .build());
+    }
     @Override
     public Cart findByUserId(Integer userId) {
         return cartRepository.findByUserId(userId)
