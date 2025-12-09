@@ -91,19 +91,43 @@ public class CartServiceImpl implements CartService {
         return cartRepository.save(cart);
     }
 
+    //    @Override
+//    public Cart deleteCartItem(Integer userId, String productId) {
+//        Cart cart = cartRepository.findByUserId(userId)
+//                .orElseThrow(() -> new RuntimeException("User not found"));
+//        boolean removed = cart.getCartItems().removeIf(
+//                item -> productId.equals(item.getId())
+//        );
+//        if (!removed) {
+//            throw new RuntimeException("Product not found in cart");
+//        }
+//        return cartRepository.save(cart);
+//    }
     @Override
-    public Cart deleteCartItem(Integer userId, String productId) {
+    public ResponseEntity<ApiResponse<String>> deleteCartItem(Integer userId, String productId, String variantId) {
         Cart cart = cartRepository.findByUserId(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        boolean removed = cart.getCartItems().removeIf(
-                item -> productId.equals(item.getId())
-        );
+        boolean removed;
+        if (variantId.isEmpty()) {
+            removed = cart.getCartItems().removeIf(
+                    item -> ((productId).equals(item.getId())));
+        } else {
+            removed = cart.getCartItems().removeIf(
+                    item -> ((productId + variantId).equals(item.getId() + item.getVariantId()))
+            );
+        }
+
         if (!removed) {
             throw new RuntimeException("Product not found in cart");
         }
-        return cartRepository.save(cart);
+        cartRepository.save(cart);
+        return ResponseEntity.ok()
+                .body(
+                        ApiResponse.<String>builder()
+                                .message("Delete product successfully")
+                                .build()
+                );
     }
-
     @Override
     public Cart updateQuantity(Integer userId, CartItemRequest request) {
         Cart cart = cartRepository.findByUserId(userId)
@@ -186,13 +210,18 @@ public class CartServiceImpl implements CartService {
                                     .build());
         }
         //kiểm tra variant co tồn tại không
-            if (!productRepository.existsByIdAndVariants_Id(request.getId(), request.getVariantId())) {
+            String variantId = request.getVariantId();
+            log.info("variant id" + variantId);
+            if (variantId != null && !variantId.isEmpty()) {
+                log.info("in if");
+                if (!productRepository.existsByIdAndVariants_Id(request.getId(), variantId)) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND)
                         .body(
                                 ApiResponse.<Cart>builder()
                                         .code(ErrorCode.VARIANT_NOT_FOUND.getCode())
                                         .message(ErrorCode.VARIANT_NOT_FOUND.getMessage())
                                         .build());
+                }
             }
         Product product = productOpt.get();
         //Lấy Cart của user (hoặc tạo mới)
@@ -203,9 +232,29 @@ public class CartServiceImpl implements CartService {
                         .build());
 
         // Kiểm tra CartItem đã có product chưa
+            //duyệt qua list các product trong cart
         Optional<CartItem> existingItemOpt = cart.getCartItems().stream()
                 .filter(ci -> ci.getId().equals(request.getId()))
-                .filter(ci->ci.getVariantId().equals(request.getVariantId()))
+                .filter(
+                        ci -> {
+                            String reqVar = request.getVariantId(); //variant id trong request
+                            String ciVar = ci.getVariantId(); // variant id khi duyệt trong list
+
+                            // Nếu cả 2 đều null hoặc rỗng -> sp không có variant
+                            if ((reqVar == null || reqVar.isEmpty()) &&
+                                    (ciVar == null || ciVar.isEmpty())) {
+                                return true;
+                            }
+
+                            // Nếu cả 2 đều có variantId -> so sánh variantId
+                            if (reqVar != null && !reqVar.isEmpty() &&
+                                    ciVar != null && !ciVar.isEmpty()) {
+                                return reqVar.equals(ciVar);
+                            }
+
+                            return false; // trái ngược nhau (1 null, 1 có) -> không match
+                        }
+                )
                 .findFirst();
 
 //        log.info("Variant ID:"+request.getVariantId());
@@ -217,7 +266,7 @@ public class CartServiceImpl implements CartService {
         } else { //Nếu chưa có trong cart, thêm mới vào cart
 
             // khách chọn sản phẩm có variant
-            if (request.getVariantId() != null) {
+            if (request.getVariantId() != null && !request.getVariantId().isEmpty()) {
                 //tìm variant theo variantId
                 List<Variant> variants = productRepository.findVariantOnly(request.getVariantId());
                 Variant v = variants.get(0);

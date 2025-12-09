@@ -18,7 +18,7 @@ public interface CartService {
 
     Cart createCartItem(Integer userId, com.example.cart_service.models.CartItem newItem);
 
-    Cart deleteCartItem(Integer userId, String productionId);
+    ResponseEntity<ApiResponse<String>> deleteCartItem(Integer userId, String productionId, String variantId);
 
     Cart updateQuantity(Integer userId, CartItemRequest request);
 

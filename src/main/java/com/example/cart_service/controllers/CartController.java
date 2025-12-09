@@ -65,13 +65,14 @@ public class CartController {
     }
 
     //xóa cart item khỏi cart
-    @DeleteMapping("/cart-items/{productId}")
-    public Cart deleteCartItem(
+    @DeleteMapping("/cart-items/{productId}/{variantId}")
+    public ResponseEntity<ApiResponse<String>> deleteCartItem(
             @AuthenticationPrincipal Jwt jwt,
-            @PathVariable String productId
+            @PathVariable String productId,
+            @PathVariable String variantId
     ) {
         Integer userId = Integer.valueOf(jwt.getClaimAsString("userId"));
-        return cartService.deleteCartItem(userId, productId);
+        return cartService.deleteCartItem(userId, productId, variantId);
     }
 
     //sửa số lượng sản phẩm
