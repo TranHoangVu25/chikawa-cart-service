@@ -65,11 +65,16 @@ public class ProductServiceImpl implements ProductService {
                                         ? List.of(p.getImages().get(0))
                                         : List.of()
                         )
+                        .variants(
+                                (p.getVariants() != null && !p.getVariants().isEmpty())
+                                        ? p.getVariants()
+                                        : List.of()
+                        )
                         .build())
                 .toList();
 
         productRepository.saveAll(docs);
         System.out.println(docs);
-        System.out.println("✅ Đã đồng bộ " + docs.size() + " sản phẩm vào product embedded.");
+        System.out.println("Đã đồng bộ " + docs.size() + " sản phẩm vào product embedded.");
     }
 }

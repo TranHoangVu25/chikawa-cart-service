@@ -32,14 +32,14 @@ public class ProductController {
 
     @PostMapping("")
     public ResponseEntity<String> syncAllProducts() {
-        log.info("🔄 Yêu cầu đồng bộ dữ liệu sản phẩm nhận được...");
+        log.info("Yêu cầu đồng bộ dữ liệu sản phẩm nhận được...");
         try {
             productService.syncAllProducts();
-            return ResponseEntity.ok("✅ Đồng bộ dữ liệu sản phẩm thành công!");
+            return ResponseEntity.ok("Đồng bộ dữ liệu sản phẩm thành công!");
         } catch (Exception e) {
-            log.error("❌ Lỗi khi đồng bộ sản phẩm: {}", e.getMessage(), e);
+            log.error("Lỗi khi đồng bộ sản phẩm: {}", e.getMessage(), e);
             return ResponseEntity.internalServerError()
-                    .body("❌ Đồng bộ thất bại: " + e.getMessage());
+                    .body("Đồng bộ thất bại: " + e.getMessage());
         }
     }
 }

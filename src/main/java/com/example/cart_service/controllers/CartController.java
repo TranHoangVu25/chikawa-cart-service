@@ -10,6 +10,7 @@ import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -21,16 +22,16 @@ import java.util.List;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @RestController
 @RequestMapping("/api/v1/cart")
+@Slf4j
 public class CartController {
     CartService cartService;
     GrpcOrderClient grpcOrderClient;
-
 
     //tạo cart theo id user (nếu chưa có)
     //sửa lại thành get nếu chưa có
     @GetMapping("")
     public ResponseEntity createCart(@AuthenticationPrincipal Jwt jwt) {
-        Integer userId = Integer.valueOf(jwt.getClaimAsString("sub"));
+        Integer userId = Integer.valueOf(jwt.getClaimAsString("userId"));
         Cart cart = cartService.findByUserIdToCreate(userId);
         if (cart == null) {
             cartService.createCart(userId);
@@ -42,7 +43,7 @@ public class CartController {
     //tìm kiếm cart theo user id
     @GetMapping("/get-user-cart")
     public Cart getCart(@AuthenticationPrincipal Jwt jwt) {
-        Integer userId = Integer.valueOf(jwt.getClaimAsString("sub"));
+        Integer userId = Integer.valueOf(jwt.getClaimAsString("userId"));
         return cartService.findByUserId(userId);
     }
 
@@ -55,9 +56,9 @@ public class CartController {
     @PostMapping
     public Cart createCartItem(@RequestBody @Valid com.example.cart_service.models.CartItem cartItem,
             @AuthenticationPrincipal Jwt jwt ) {
-        Integer userId = Integer.parseInt(jwt.getClaimAsString("sub"));
+        Integer userId = Integer.parseInt(jwt.getClaimAsString("userId"));
 
-        System.out.println("✅ Thêm sản phẩm từ product service:");
+        System.out.println("Thêm sản phẩm từ product service:");
         System.out.println("Items: " + cartItem.getName());
 
         return cartService.createCartItem(userId, cartItem);
@@ -69,7 +70,7 @@ public class CartController {
             @AuthenticationPrincipal Jwt jwt,
             @PathVariable String productId
     ) {
-        Integer userId = Integer.valueOf(jwt.getClaimAsString("sub"));
+        Integer userId = Integer.valueOf(jwt.getClaimAsString("userId"));
         return cartService.deleteCartItem(userId, productId);
     }
 
@@ -79,7 +80,7 @@ public class CartController {
             @AuthenticationPrincipal Jwt jwt,
             @RequestBody @Valid CartItemRequest request
     ) {
-        Integer userId = Integer.valueOf(jwt.getClaimAsString("sub"));
+        Integer userId = Integer.valueOf(jwt.getClaimAsString("userId"));
         return cartService.updateQuantity(userId, request);
     }
 
@@ -87,7 +88,7 @@ public class CartController {
     // nếu không thành công thì cart vẫn để nguyên
     @GetMapping("/checkout")
     public ApiResponse<String> checkout(@AuthenticationPrincipal Jwt jwt) {
-        Integer userId = Integer.valueOf(jwt.getClaimAsString("sub"));
+        Integer userId = Integer.valueOf(jwt.getClaimAsString("userId"));
         return cartService.checkout(userId,jwt.getTokenValue());
     }
 
@@ -97,7 +98,8 @@ public class CartController {
             @AuthenticationPrincipal Jwt jwt
     ){
         try {
-            Integer userId = Integer.valueOf(jwt.getClaimAsString("sub"));
+            Integer userId = Integer.valueOf(jwt.getClaimAsString("userId"));
+            log.info("UserId:=="+userId);
             return cartService.addToCart(userId,request);
         } catch (NumberFormatException e) {
             e.printStackTrace();

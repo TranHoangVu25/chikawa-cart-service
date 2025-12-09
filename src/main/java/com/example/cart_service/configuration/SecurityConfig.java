@@ -22,8 +22,7 @@ import static org.springframework.security.config.Customizer.withDefaults;
 public class SecurityConfig {
 
     private final String[] USER_END_POINT = {
-            "/api/v1/cart","/api/v1/cart/cart-items/**",
-            "/api/v1/cart/cart-items/**", "/api/v1/cart/get-carts"
+            "/api/v1/cart/**","api/v1/pro_embedded/**"
     };
     private final String[] ADMIN_END_POINT = {
             "/api/v1/cart/get-carts","/api/v1/cart/{id}"
@@ -37,10 +36,16 @@ public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Excepti
     httpSecurity.authorizeHttpRequests(
             request ->
                     request
-                            .requestMatchers(HttpMethod.POST, USER_END_POINT).hasRole("CUSTOMER")
-                            .requestMatchers(HttpMethod.PUT, USER_END_POINT).hasRole("CUSTOMER")
-                            .requestMatchers(HttpMethod.DELETE, USER_END_POINT).hasRole("CUSTOMER")
-                            .requestMatchers(HttpMethod.PUT, USER_END_POINT).hasRole("CUSTOMER")
+//                            .requestMatchers(HttpMethod.POST, USER_END_POINT).hasRole("CUSTOMER")
+//                            .requestMatchers(HttpMethod.PUT, USER_END_POINT).hasRole("CUSTOMER")
+//                            .requestMatchers(HttpMethod.DELETE, USER_END_POINT).hasRole("CUSTOMER")
+//                            .requestMatchers(HttpMethod.PUT, USER_END_POINT).hasRole("CUSTOMER")
+//                            .requestMatchers(HttpMethod.GET,USER_END_POINT)
+                            .requestMatchers(HttpMethod.POST, USER_END_POINT).permitAll()
+                            .requestMatchers(HttpMethod.PUT, USER_END_POINT).permitAll()
+                            .requestMatchers(HttpMethod.GET, USER_END_POINT).permitAll()
+                            .requestMatchers(HttpMethod.DELETE, USER_END_POINT).permitAll()
+
 //                            .requestMatchers(HttpMethod.GET, ADMIN_END_POINT).hasRole("ADMIN")
                             .anyRequest().authenticated());
 

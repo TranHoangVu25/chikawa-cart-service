@@ -20,6 +20,7 @@ public enum ErrorCode {
     INVALID_PRICE(1011,"The price must be > 0",HttpStatus.BAD_REQUEST),
     PRODUCT_NOT_AVAILABLE(1012,"Product not available",HttpStatus.BAD_REQUEST),
     ADD_TO_CART_SUCCESS(1013,"Add to cart successfully",HttpStatus.OK),
+    VARIANT_NOT_FOUND(1014,"Variant not found",HttpStatus.BAD_REQUEST),
 
 
     ;

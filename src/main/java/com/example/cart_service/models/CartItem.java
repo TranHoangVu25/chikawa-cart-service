@@ -20,4 +20,5 @@ public class CartItem {
     @Min(message = "INVALID_QUANTITY",value = 1)
     int quantity;
     String image;
+    String variantId;
 }

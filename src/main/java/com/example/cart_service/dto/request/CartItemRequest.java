@@ -1,5 +1,6 @@
 package com.example.cart_service.dto.request;
 
+import com.example.cart_service.models.Variant;
 import jakarta.validation.constraints.Min;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -15,4 +16,5 @@ public class CartItemRequest {
     String id;
     @Min(value = 1,message = "INVALID_QUANTITY")
     int quantity;
+    String variantId;
 }

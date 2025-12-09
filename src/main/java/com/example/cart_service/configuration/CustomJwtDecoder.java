@@ -36,10 +36,10 @@ public class CustomJwtDecoder implements JwtDecoder {
             }
 
             // check expiry
-//            JWTClaimsSet claims = signedJWT.getJWTClaimsSet();
-//            if (claims.getExpirationTime() == null || claims.getExpirationTime().before(new java.util.Date())) {
-//                throw new JwtException("JWT token expired");
-//            }
+            JWTClaimsSet claims = signedJWT.getJWTClaimsSet();
+            if (claims.getExpirationTime() == null || claims.getExpirationTime().before(new java.util.Date())) {
+                throw new JwtException("JWT token expired");
+            }
 
             // tạo NimbusJwtDecoder (lazy init)
             if (Objects.isNull(nimbusJwtDecoder)) {

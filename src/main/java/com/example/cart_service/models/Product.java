@@ -18,4 +18,5 @@ public class Product {
     private Double price;
     private String status;
     private List<String> images;
+    private List<Variant> variants;
 }

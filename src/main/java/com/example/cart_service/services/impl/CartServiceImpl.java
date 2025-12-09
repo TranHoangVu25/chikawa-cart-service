@@ -7,6 +7,7 @@ import com.example.cart_service.exception.ErrorCode;
 import com.example.cart_service.models.Cart;
 import com.example.cart_service.models.CartItem;
 import com.example.cart_service.models.Product;
+import com.example.cart_service.models.Variant;
 import com.example.cart_service.repositories.CartRepository;
 import com.example.cart_service.repositories.ProductRepository;
 import com.example.cart_service.services.CartService;
@@ -170,6 +171,8 @@ public class CartServiceImpl implements CartService {
 
     @Override
     public ResponseEntity<ApiResponse<Cart>> addToCart(Integer userId, CartItemRequest request) {
+        try {
+            //kiểm tra trạng thái sản phẩm
         Optional<Product> productOpt = productRepository.findById(request.getId())
                 .filter(p -> "available".equalsIgnoreCase(p.getStatus()));
 
@@ -178,11 +181,19 @@ public class CartServiceImpl implements CartService {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(
                             ApiResponse.<Cart>builder()
-                                    .code(404) // hoặc code phù hợp
+                                    .code(ErrorCode.PRODUCT_NOT_AVAILABLE.getCode())
                                     .message(ErrorCode.PRODUCT_NOT_AVAILABLE.getMessage())
                                     .build());
         }
-
+        //kiểm tra variant co tồn tại không
+            if (!productRepository.existsByIdAndVariants_Id(request.getId(), request.getVariantId())) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(
+                                ApiResponse.<Cart>builder()
+                                        .code(ErrorCode.VARIANT_NOT_FOUND.getCode())
+                                        .message(ErrorCode.VARIANT_NOT_FOUND.getMessage())
+                                        .build());
+            }
         Product product = productOpt.get();
         //Lấy Cart của user (hoặc tạo mới)
         Cart cart = cartRepository.findByUserId(userId)
@@ -194,24 +205,50 @@ public class CartServiceImpl implements CartService {
         // Kiểm tra CartItem đã có product chưa
         Optional<CartItem> existingItemOpt = cart.getCartItems().stream()
                 .filter(ci -> ci.getId().equals(request.getId()))
+                .filter(ci->ci.getVariantId().equals(request.getVariantId()))
                 .findFirst();
 
+//        log.info("Variant ID:"+request.getVariantId());
+
         if (existingItemOpt.isPresent()) {
-            //Nếu đã có, tăng quantity
+            //Nếu đã có trong cart, tăng quantity
             CartItem existingItem = existingItemOpt.get();
             existingItem.setQuantity(existingItem.getQuantity() + request.getQuantity());
-        } else {
-            //Nếu chưa có, thêm mới
-            CartItem newItem = CartItem.builder()
-                    .id(product.getId())
-                    .name(product.getName())
-                    .price(product.getPrice())
-                    .quantity(request.getQuantity())
-                    .image(product.getImages() != null && !product.getImages().isEmpty()
-                            ? product.getImages().get(0)
-                            : null)
-                    .build();
-            cart.getCartItems().add(newItem);
+        } else { //Nếu chưa có trong cart, thêm mới vào cart
+
+            // khách chọn sản phẩm có variant
+            if (request.getVariantId() != null) {
+                //tìm variant theo variantId
+                List<Variant> variants = productRepository.findVariantOnly(request.getVariantId());
+                Variant v = variants.get(0);
+                log.info("Variant Infor:"+v);
+                log.info("Variant ID:"+request.getVariantId());
+
+                CartItem newItem = CartItem.builder()
+                        .id(product.getId())
+                        .name(v.getName())
+                        .price(product.getPrice())
+                        .quantity(request.getQuantity())
+                        .image(product.getImages() != null && !product.getImages().isEmpty()
+                                ? v.getImg()
+                                : null)
+                        .variantId(request.getVariantId())
+                        .build();
+                cart.getCartItems().add(newItem);
+            }
+            else {
+                //nếu khách chọn sản phẩm mặc định, or sp k có varient
+                CartItem newItem = CartItem.builder()
+                        .id(product.getId())
+                        .name(product.getName())
+                        .price(product.getPrice())
+                        .quantity(request.getQuantity())
+                        .image(product.getImages() != null && !product.getImages().isEmpty()
+                                ? product.getImages().get(0)
+                                : null)
+                        .build();
+                cart.getCartItems().add(newItem);
+            }
         }
 
         // Lưu Cart lại
@@ -221,5 +258,8 @@ public class CartServiceImpl implements CartService {
                                 .result(cartRepository.save(cart))
                                 .message(ErrorCode.ADD_TO_CART_SUCCESS.getMessage())
                                 .build());
+    } catch (RuntimeException e) {
+            throw new RuntimeException(e);
+        }
     }
 }
