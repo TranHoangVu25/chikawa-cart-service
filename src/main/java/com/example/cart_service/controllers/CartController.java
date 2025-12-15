@@ -1,11 +1,15 @@
 package com.example.cart_service.controllers;
 
 import com.example.cart_service.dto.request.CartItemRequest;
+import com.example.cart_service.dto.request.CheckoutItemRequest;
 import com.example.cart_service.dto.response.ApiResponse;
 //import com.example.cart_service.grpc.GrpcOrderClient;
+import com.example.cart_service.dto.response.OrderCheckoutResponse;
 import com.example.cart_service.grpc.GrpcOrderClient;
 import com.example.cart_service.models.Cart;
+import com.example.cart_service.models.CartItem;
 import com.example.cart_service.services.CartService;
+import com.example.grpc.OrderResponse;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -109,24 +113,20 @@ public class CartController {
     }
 
     @PostMapping("/checkout")
-    public String checkout(@RequestBody Cart cart) {
+    public ResponseEntity<?> checkout(
+            @RequestBody List<CheckoutItemRequest> items,
+            @AuthenticationPrincipal Jwt jwt
+    ) {
+        Integer userId = Integer.valueOf(jwt.getClaimAsString("userId"));
 
-        if (cart == null || cart.getCartItems().isEmpty()) {
-            return "Error: Cart is empty or invalid.";
-        }
+        OrderResponse grpcResponse =
+                grpcOrderClient.sendOrder(userId, items);
 
-        try {
-            // Gọi gRPC Client, chỉ truyền dữ liệu cần thiết cho OrderService
-            String orderResponse = grpcOrderClient.sendOrder(
-                    cart.getUserId(),
-                    cart.getCartItems() // Dữ liệu giỏ hàng
-            );
+        OrderCheckoutResponse response = new OrderCheckoutResponse();
+        response.setOrderId(grpcResponse.getOrderId());
+        response.setMessage(grpcResponse.getMessage());
 
-            return "Checkout successful. Order Service Response: " + orderResponse;
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            return "Error during gRPC communication: " + e.getMessage();
-        }
+        return ResponseEntity.ok(response);
     }
+
 }

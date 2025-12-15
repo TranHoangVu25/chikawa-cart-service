@@ -6,8 +6,6 @@ package order;
 option java_multiple_files = true;
 option java_package = "com.example.grpc";
 
-// 🔴 Loại bỏ dòng này: option java_outer_classname = "OrderProto";
-
 // Định nghĩa Service (Interface)
 service OrderService {
   rpc CreateOrder (CartRequest) returns (OrderResponse);
@@ -25,6 +23,8 @@ message CartItem {
   double price = 3;
   int32 quantity = 4;
   string image = 5;
+
+  string variantId = 6;   // optional
 }
 
 message OrderResponse {
