@@ -1,5 +1,6 @@
 package com.example.cart_service.controllers;
 
+import com.example.cart_service.dto.request.CartCheckOutRequest;
 import com.example.cart_service.dto.request.CartItemRequest;
 import com.example.cart_service.dto.request.CheckoutItemRequest;
 import com.example.cart_service.dto.response.ApiResponse;
@@ -8,6 +9,7 @@ import com.example.cart_service.dto.response.OrderCheckoutResponse;
 import com.example.cart_service.grpc.GrpcOrderClient;
 import com.example.cart_service.models.Cart;
 import com.example.cart_service.models.CartItem;
+import com.example.cart_service.repositories.CartRepository;
 import com.example.cart_service.services.CartService;
 import com.example.grpc.OrderResponse;
 import jakarta.validation.Valid;
@@ -30,6 +32,7 @@ import java.util.List;
 public class CartController {
     CartService cartService;
     GrpcOrderClient grpcOrderClient;
+    CartRepository repository;
 
     //tạo cart theo id user (nếu chưa có)
     //sửa lại thành get nếu chưa có
@@ -113,20 +116,25 @@ public class CartController {
     }
 
     @PostMapping("/checkout")
-    public ResponseEntity<?> checkout(
-            @RequestBody List<CheckoutItemRequest> items,
+    public ResponseEntity<ApiResponse<?>> checkout(
+            @RequestBody CartCheckOutRequest request,
             @AuthenticationPrincipal Jwt jwt
     ) {
         Integer userId = Integer.valueOf(jwt.getClaimAsString("userId"));
 
-        OrderResponse grpcResponse =
-                grpcOrderClient.sendOrder(userId, items);
+        // Cần thêm: duyệt qua các id của product trong cart kiểm tra xem tồn tại k
 
+        OrderResponse grpcResponse =
+                grpcOrderClient.sendOrder(userId, request.getItems(), request.getAddress());
         OrderCheckoutResponse response = new OrderCheckoutResponse();
         response.setOrderId(grpcResponse.getOrderId());
         response.setMessage(grpcResponse.getMessage());
-
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok()
+                .body(
+                        ApiResponse.builder()
+                                .message("In cart. Create order successful!")
+                                .result(response)
+                                .build()
+                );
     }
-
 }

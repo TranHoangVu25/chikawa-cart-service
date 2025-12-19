@@ -11,6 +11,10 @@ import org.springframework.context.annotation.Configuration;
 public class RabbitMQConfig {
     public static final String EXCHANGE = "product_exchange";
     public static final String QUEUE = "product_cart_queue";
+
+    //queue nhận action xóa cart Items từ order_service khi thanh toán thành công
+    public static final String DELETE_CART_ITEMS_QUEUE = "product_cart_queue";
+
     @Bean
     public FanoutExchange fanoutExchange() {
         return new FanoutExchange(EXCHANGE);
