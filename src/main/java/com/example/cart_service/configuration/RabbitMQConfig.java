@@ -9,26 +9,60 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class RabbitMQConfig {
-    public static final String EXCHANGE = "product_exchange";
-    public static final String QUEUE = "product_cart_queue";
 
-    //queue nhận action xóa cart Items từ order_service khi thanh toán thành công
-    public static final String DELETE_CART_ITEMS_QUEUE = "product_cart_queue";
+    // ===== Product -> Cart =====
+    public static final String PRODUCT_EXCHANGE = "product_exchange";
+    public static final String PRODUCT_QUEUE = "product_cart_queue";
+
+    // ===== Order -> Cart =====
+    public static final String ORDER_EXCHANGE = "order_exchange";
+    public static final String ORDER_QUEUE = "order_cart_queue";
+
+    /* ================= PRODUCT -> CART ================= */
 
     @Bean
-    public FanoutExchange fanoutExchange() {
-        return new FanoutExchange(EXCHANGE);
+    public FanoutExchange productFanoutExchange() {
+        return new FanoutExchange(PRODUCT_EXCHANGE);
     }
 
     @Bean
-    public Queue queue() {
-        return new Queue(QUEUE, true);
+    public Queue productQueue() {
+        return QueueBuilder.durable(PRODUCT_QUEUE).build();
     }
 
     @Bean
-    public Binding binding(Queue queue, FanoutExchange fanoutExchange) {
-        return BindingBuilder.bind(queue).to(fanoutExchange);
+    public Binding bindProductQueue(
+            Queue productQueue,
+            FanoutExchange productFanoutExchange
+    ) {
+        return BindingBuilder
+                .bind(productQueue)
+                .to(productFanoutExchange);
     }
+
+    /* ================= ORDER -> CART ================= */
+
+    @Bean
+    public FanoutExchange orderFanoutExchange() {
+        return new FanoutExchange(ORDER_EXCHANGE);
+    }
+
+    @Bean
+    public Queue orderCartQueue() {
+        return QueueBuilder.durable(ORDER_QUEUE).build();
+    }
+
+    @Bean
+    public Binding bindOrderCartQueue(
+            Queue orderCartQueue,
+            FanoutExchange orderFanoutExchange
+    ) {
+        return BindingBuilder
+                .bind(orderCartQueue)
+                .to(orderFanoutExchange);
+    }
+
+    /* ================= COMMON ================= */
 
     @Bean
     public Jackson2JsonMessageConverter jackson2JsonMessageConverter() {
@@ -37,9 +71,9 @@ public class RabbitMQConfig {
 
     @Bean
     public RabbitTemplate rabbitTemplate(ConnectionFactory connectionFactory) {
-        RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory);
-        rabbitTemplate.setMessageConverter(jackson2JsonMessageConverter());
-        return rabbitTemplate;
+        RabbitTemplate template = new RabbitTemplate(connectionFactory);
+        template.setMessageConverter(jackson2JsonMessageConverter());
+        return template;
     }
 }
 

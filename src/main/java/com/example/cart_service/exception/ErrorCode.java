@@ -23,7 +23,6 @@ public enum ErrorCode {
     VARIANT_NOT_FOUND(1014,"Variant not found",HttpStatus.BAD_REQUEST),
     PRODUCT_NOT_FOUND(1015,"Product not found",HttpStatus.BAD_REQUEST),
 
-
     ;
     private int code;
     private String message;

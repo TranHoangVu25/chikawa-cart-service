@@ -16,5 +16,4 @@ public class CartItemRequest {
     String id;
     @Min(value = 1,message = "INVALID_QUANTITY")
     int quantity;
-    String variantId;
 }

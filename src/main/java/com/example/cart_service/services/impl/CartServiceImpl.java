@@ -18,7 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
-
+import com.example.cart_service.models.CartItem;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -59,7 +59,7 @@ public class CartServiceImpl implements CartService {
 
     //thêm cart item vào giỏ hàng
     @Override
-    public Cart createCartItem(Integer userId, com.example.cart_service.models.CartItem newItem) {
+    public Cart createCartItem(Integer userId, CartItem newItem) {
         boolean a = cartRepository.existsByUserId(userId);
         log.info("result ="+a);
         //check giỏ hàng đã tồn tại chưa, nếu chưa thì tạo mới
@@ -76,11 +76,12 @@ public class CartServiceImpl implements CartService {
         Cart cart = cartRepository.findByUserId(userId)
                 .orElseThrow(() -> new RuntimeException("User have id: "+userId+" not found cart."));
 
-        List<com.example.cart_service.models.CartItem> existingCartItems = cart.getCartItems();
+        List<CartItem> existingCartItems = cart.getCartItems();
 
         boolean found = false;
 
-        for (com.example.cart_service.models.CartItem item : existingCartItems) {
+        //kiểm tra id prod, chưa -> thêm mới, tồn tại -> += quantity
+        for (CartItem item : existingCartItems) {
             if (newItem.getId().equals(item.getId())) {
                 item.setQuantity(item.getQuantity() + newItem.getQuantity());
                 item.setPrice(item.getPrice()* item.getQuantity());
@@ -93,23 +94,25 @@ public class CartServiceImpl implements CartService {
     }
 
     @Override
-    public ResponseEntity<ApiResponse<String>> deleteCartItem(Integer userId, String productId, String variantId) {
+    public ResponseEntity<ApiResponse<String>> deleteCartItem(Integer userId, String productId) {
         Cart cart = cartRepository.findByUserId(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        boolean removed;
-        if (variantId.isEmpty()) {
-            removed = cart.getCartItems().removeIf(
-                    item -> ((productId).equals(item.getId())));
-        } else {
-            removed = cart.getCartItems().removeIf(
-                    item -> ((productId + variantId).equals(item.getId() + item.getVariantId()))
-            );
-        }
+
+        productRepository.findById(productId)
+                .orElseThrow(() -> new RuntimeException("Product not found"));
+
+
+        boolean removed = cart.getCartItems().removeIf(item -> item.getId().equals(productId));
 
         if (!removed) {
-            throw new RuntimeException("Product not found in cart");
+            return ResponseEntity.badRequest()
+                    .body(ApiResponse.<String>builder()
+                            .message("Product not found in cart")
+                            .build());
         }
+
         cartRepository.save(cart);
+
         return ResponseEntity.ok()
                 .body(
                         ApiResponse.<String>builder()
@@ -118,59 +121,49 @@ public class CartServiceImpl implements CartService {
                 );
     }
     @Override
-    public ResponseEntity<ApiResponse<Cart>> updateQuantity(Integer userId, CartItemRequest request) {
+    public ResponseEntity<ApiResponse<CartItem>> updateQuantity(Integer userId, CartItemRequest request) {
         if (!cartRepository.existsByUserId(userId)) {
-            ResponseEntity.badRequest()
+            return ResponseEntity.badRequest()
                     .body(
-                            ApiResponse.<Cart>builder()
+                            ApiResponse.<CartItem>builder()
                                     .code(ErrorCode.USER_NOT_EXISTED.getCode())
                                     .message(ErrorCode.USER_NOT_EXISTED.getMessage())
                                     .build());
         }
+
         Cart cart = cartRepository.findByUserId(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
+
         List<CartItem> cartItemList = cart.getCartItems();
+        boolean found = false;
 
-        boolean updated = false;
-        String reqVariantId = request.getVariantId();
-        if(reqVariantId!=null && reqVariantId.isEmpty()) reqVariantId = null;
+        CartItem cartItem = null;
         for (CartItem item : cartItemList) {
-            String itemVariantId = item.getVariantId();
-
-            if(itemVariantId!=null && itemVariantId.isEmpty()) itemVariantId = null;
-
-            boolean sameProd = item.getId().equals(request.getId());
-            boolean sameVariantId = Objects.equals(itemVariantId,reqVariantId);
-
-            log.info("sameProd: "+sameProd+" sameVariantId: "+sameVariantId);
-            if (sameProd && sameVariantId) {
-                {
-                    item.setQuantity(request.getQuantity());
-                    updated = true;
-                    break;
-                }
+            if(request.getId().equals(item.getId())) {
+                item.setQuantity(request.getQuantity());
+                found = true;
+                cartItem = item;
+                break;
             }
         }
 
-        // nếu k có sản phẩm nào đc update
-        if (!updated) {
-            log.error("Product not found");
+        if (!found){
             return ResponseEntity.badRequest()
                     .body(
-                            ApiResponse.<Cart>builder()
-                                    .code(ErrorCode.PRODUCT_NOT_FOUND.getCode())
-                                    .message(ErrorCode.PRODUCT_NOT_FOUND.getMessage())
+                            ApiResponse.<CartItem>builder()
+                                    .message("Not found item has id: "+request.getId())
                                     .build());
         }
-        Cart item_update = cartRepository.save(cart);
+        cartRepository.save(cart);
 
         return ResponseEntity.ok()
                 .body(
-                        ApiResponse.<Cart>builder()
+                        ApiResponse.<CartItem>builder()
                                 .message("Update quantity successfully")
-                                .result(item_update)
+                                .result(cartItem)
                                 .build());
     }
+
     @Override
     public Cart findByUserId(Integer userId) {
         return cartRepository.findByUserId(userId)
@@ -217,8 +210,18 @@ public class CartServiceImpl implements CartService {
     }
 
     @Override
-    public ResponseEntity<ApiResponse<Cart>> addToCart(Integer userId, CartItemRequest request) {
-        try {
+    public ResponseEntity<ApiResponse<Cart>> addToCart(Integer userId,  CartItemRequest request) {
+        //khởi ta cart cho user nếu chưa có
+            if (!cartRepository.existsByUserId(userId)){
+                List<com.example.cart_service.models.CartItem> cartItemList = new ArrayList<>();
+                Cart cart = new Cart()
+                        .builder()
+                        .userId(userId)
+                        .cartItems(cartItemList)
+                        .build();
+                cartRepository.save(cart);
+            }
+
             //kiểm tra trạng thái sản phẩm
         Optional<Product> productOpt = productRepository.findById(request.getId())
                 .filter(p -> "available".equalsIgnoreCase(p.getStatus()));
@@ -232,20 +235,7 @@ public class CartServiceImpl implements CartService {
                                     .message(ErrorCode.PRODUCT_NOT_AVAILABLE.getMessage())
                                     .build());
         }
-        //kiểm tra variant co tồn tại không
-            String variantId = request.getVariantId();
-            log.info("variant id" + variantId);
-            if (variantId != null && !variantId.isEmpty()) {
-                log.info("in if");
-                if (!productRepository.existsByIdAndVariants_Id(request.getId(), variantId)) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                        .body(
-                                ApiResponse.<Cart>builder()
-                                        .code(ErrorCode.VARIANT_NOT_FOUND.getCode())
-                                        .message(ErrorCode.VARIANT_NOT_FOUND.getMessage())
-                                        .build());
-                }
-            }
+
         Product product = productOpt.get();
         //Lấy Cart của user (hoặc tạo mới)
         Cart cart = cartRepository.findByUserId(userId)
@@ -258,29 +248,7 @@ public class CartServiceImpl implements CartService {
             //duyệt qua list các product trong cart
         Optional<CartItem> existingItemOpt = cart.getCartItems().stream()
                 .filter(ci -> ci.getId().equals(request.getId()))
-                .filter(
-                        ci -> {
-                            String reqVar = request.getVariantId(); //variant id trong request
-                            String ciVar = ci.getVariantId(); // variant id khi duyệt trong list
-
-                            // Nếu cả 2 đều null hoặc rỗng -> sp không có variant
-                            if ((reqVar == null || reqVar.isEmpty()) &&
-                                    (ciVar == null || ciVar.isEmpty())) {
-                                return true;
-                            }
-
-                            // Nếu cả 2 đều có variantId -> so sánh variantId
-                            if (reqVar != null && !reqVar.isEmpty() &&
-                                    ciVar != null && !ciVar.isEmpty()) {
-                                return reqVar.equals(ciVar);
-                            }
-
-                            return false; // trái ngược nhau (1 null, 1 có) -> không match
-                        }
-                )
                 .findFirst();
-
-//        log.info("Variant ID:"+request.getVariantId());
 
         if (existingItemOpt.isPresent()) {
             //Nếu đã có trong cart, tăng quantity
@@ -288,40 +256,18 @@ public class CartServiceImpl implements CartService {
             existingItem.setQuantity(existingItem.getQuantity() + request.getQuantity());
         } else { //Nếu chưa có trong cart, thêm mới vào cart
 
-            // khách chọn sản phẩm có variant
-            if (request.getVariantId() != null && !request.getVariantId().isEmpty()) {
-                //tìm variant theo variantId
-                List<Variant> variants = productRepository.findVariantOnly(request.getVariantId());
-                Variant v = variants.get(0);
-                log.info("Variant Infor:"+v);
-                log.info("Variant ID:"+request.getVariantId());
-
-                CartItem newItem = CartItem.builder()
-                        .id(product.getId())
-                        .name(v.getName())
-                        .price(product.getPrice())
-                        .quantity(request.getQuantity())
-                        .image(product.getImages() != null && !product.getImages().isEmpty()
-                                ? v.getImg()
-                                : null)
-                        .variantId(request.getVariantId())
-                        .build();
-                cart.getCartItems().add(newItem);
-            }
-            else {
-                //nếu khách chọn sản phẩm mặc định, or sp k có varient
                 CartItem newItem = CartItem.builder()
                         .id(product.getId())
                         .name(product.getName())
                         .price(product.getPrice())
                         .quantity(request.getQuantity())
                         .image(product.getImages() != null && !product.getImages().isEmpty()
-                                ? product.getImages().get(0)
+                                ? product.getImages().getFirst()
                                 : null)
+                        .description(product.getDescription())
                         .build();
                 cart.getCartItems().add(newItem);
             }
-        }
 
         // Lưu Cart lại
         return ResponseEntity.ok()
@@ -330,8 +276,5 @@ public class CartServiceImpl implements CartService {
                                 .result(cartRepository.save(cart))
                                 .message(ErrorCode.ADD_TO_CART_SUCCESS.getMessage())
                                 .build());
-    } catch (RuntimeException e) {
-            throw new RuntimeException(e);
-        }
     }
 }

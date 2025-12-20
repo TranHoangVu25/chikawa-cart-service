@@ -70,6 +70,7 @@ public class ProductServiceImpl implements ProductService {
                                         ? p.getVariants()
                                         : List.of()
                         )
+                        .description(p.getDescription())
                         .build())
                 .toList();
 

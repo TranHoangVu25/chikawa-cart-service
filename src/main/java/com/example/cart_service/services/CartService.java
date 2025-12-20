@@ -3,6 +3,7 @@ package com.example.cart_service.services;
 import com.example.cart_service.dto.request.CartItemRequest;
 import com.example.cart_service.dto.response.ApiResponse;
 import com.example.cart_service.models.Cart;
+import com.example.cart_service.models.CartItem;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
@@ -18,9 +19,9 @@ public interface CartService {
 
     Cart createCartItem(Integer userId, com.example.cart_service.models.CartItem newItem);
 
-    ResponseEntity<ApiResponse<String>> deleteCartItem(Integer userId, String productionId, String variantId);
+    ResponseEntity<ApiResponse<String>> deleteCartItem(Integer userId, String productionId);
 
-    ResponseEntity<ApiResponse<Cart>> updateQuantity(Integer userId, CartItemRequest request);
+    ResponseEntity<ApiResponse<CartItem>> updateQuantity(Integer userId, CartItemRequest request);
 
     Cart findByUserId(Integer userId);
 

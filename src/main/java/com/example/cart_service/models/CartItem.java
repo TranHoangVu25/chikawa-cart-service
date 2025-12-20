@@ -21,4 +21,5 @@ public class CartItem {
     int quantity;
     String image;
     String variantId;
+    String description;
 }

@@ -1,6 +1,10 @@
 package com.example.cart_service.services;
 
+import com.example.cart_service.dto.CartItemDeleteEvent;
 import com.example.cart_service.dto.ProductDTO;
+import com.example.cart_service.enums.Action;
+import com.example.cart_service.models.Cart;
+import com.example.cart_service.models.CartItem;
 import com.example.cart_service.models.Product;
 import com.example.cart_service.repositories.CartRepository;
 import com.example.cart_service.repositories.ProductRepository;
@@ -8,16 +12,18 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class ListenProductServiceImpl{
-    private final CartRepository repository;
     private final ProductRepository productRepository;
+    private final CartRepository cartRepository;
 
     //receive data from create product
     public void listenCreateProduct(ProductDTO event) {
@@ -91,4 +97,38 @@ public class ListenProductServiceImpl{
             case null, default -> throw new RuntimeException("In receive data. Error in receive!!");
         }
     }
+    @RabbitListener(queues = "order_cart_queue")
+    @Transactional
+    public void deleteCartItem(CartItemDeleteEvent e) {
+        log.info("Received CartItemDeleteEvent: {}", e);
+
+        if (e.getAction() != Action.DELETE_CART_ITEMS) {
+            return;
+        }
+
+        Cart cart = cartRepository.findByUserId(e.getUserId())
+                .orElseThrow(() -> new RuntimeException("Cart not found"));
+
+        List<CartItem> cartItems = cart.getCartItems();
+
+        List<CartItem> orderItems = e.getOrderItems();
+
+        Iterator<CartItem> iterator = cartItems.iterator();
+        while (iterator.hasNext()) {
+            CartItem cartItem = iterator.next();
+
+            for (CartItem orderItem : orderItems) {
+                if (cartItem.getId().equals(orderItem.getId())) {
+                    iterator.remove(); // xóa an toàn
+                    break;
+                }
+            }
+        }
+
+        cartRepository.save(cart);
+
+        log.info("Deleted ordered items from cart for user {}", e.getUserId());
+    }
+
+
 }

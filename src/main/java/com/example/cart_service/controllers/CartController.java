@@ -2,9 +2,7 @@ package com.example.cart_service.controllers;
 
 import com.example.cart_service.dto.request.CartCheckOutRequest;
 import com.example.cart_service.dto.request.CartItemRequest;
-import com.example.cart_service.dto.request.CheckoutItemRequest;
 import com.example.cart_service.dto.response.ApiResponse;
-//import com.example.cart_service.grpc.GrpcOrderClient;
 import com.example.cart_service.dto.response.OrderCheckoutResponse;
 import com.example.cart_service.grpc.GrpcOrderClient;
 import com.example.cart_service.models.Cart;
@@ -61,7 +59,7 @@ public class CartController {
     }
 
     @PostMapping
-    public Cart createCartItem(@RequestBody @Valid com.example.cart_service.models.CartItem cartItem,
+    public Cart createCartItem(@RequestBody @Valid CartItem cartItem,
             @AuthenticationPrincipal Jwt jwt ) {
         Integer userId = Integer.parseInt(jwt.getClaimAsString("userId"));
 
@@ -72,32 +70,23 @@ public class CartController {
     }
 
     //xóa cart item khỏi cart
-    @DeleteMapping("/cart-items/{productId}/{variantId}")
+    @DeleteMapping("/cart-items/{productId}")
     public ResponseEntity<ApiResponse<String>> deleteCartItem(
             @AuthenticationPrincipal Jwt jwt,
-            @PathVariable String productId,
-            @PathVariable String variantId
+            @PathVariable String productId
     ) {
         Integer userId = Integer.valueOf(jwt.getClaimAsString("userId"));
-        return cartService.deleteCartItem(userId, productId, variantId);
+        return cartService.deleteCartItem(userId, productId);
     }
 
     //sửa số lượng sản phẩm
     @PutMapping("/cart-items")
-    public ResponseEntity<ApiResponse<Cart>> updateCartItem(
+    public ResponseEntity<ApiResponse<CartItem>> updateCartItem(
             @AuthenticationPrincipal Jwt jwt,
             @RequestBody @Valid CartItemRequest request
     ) {
         Integer userId = Integer.valueOf(jwt.getClaimAsString("userId"));
         return cartService.updateQuantity(userId, request);
-    }
-
-    //checkout: nếu thanh toán thành công thì xóa toàn bộ cart hiện tại
-    // nếu không thành công thì cart vẫn để nguyên
-    @GetMapping("/checkout")
-    public ApiResponse<String> checkout(@AuthenticationPrincipal Jwt jwt) {
-        Integer userId = Integer.valueOf(jwt.getClaimAsString("userId"));
-        return cartService.checkout(userId,jwt.getTokenValue());
     }
 
     @PostMapping("/add-to-cart")
